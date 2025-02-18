@@ -46,7 +46,7 @@ class TicketController extends Controller
         ]);
 
         //generate qr code
-        $qrCode = QrCode::size(200)->generate($ticket->ticket_id);
+        $qrCode = QrCode::size(200)->generate(route('tickets.redeem', $ticket->id));
 
         return response()->json([
             'success' => true,
@@ -97,5 +97,17 @@ class TicketController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Ticket deleted successfully']);
+    }
+
+    public function redeem(Ticket $ticket)
+    {
+        if($ticket->status === 'redeemed'){
+            return redirect()->back()->withErrors(['error' => 'Ticket already redeemed.']);
+        }
+        $ticket->status = 'redeemed';
+        $ticket->redemption_date = now()->toDateString();
+        $ticket->save();
+
+        return redirect()->route('tickets.edit', $ticket->id)->with('success', 'Ticket redeemed successfully');
     }
 }
