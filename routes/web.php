@@ -18,6 +18,7 @@ Route::middleware('auth')->group(function () {
 
     //Ticket routes
     Route::resource('tickets', TicketController::class);
+    Route::get('tickets/{ticket}/redeem', [TicketController::class, 'redeem'])->name('tickets.redeem');
 });
 
 require __DIR__.'/auth.php';
