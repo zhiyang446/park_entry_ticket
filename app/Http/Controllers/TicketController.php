@@ -20,12 +20,12 @@ class TicketController extends Controller
         try {
             $currentUser = Auth::user();
 
-            // 检查是否是管理员
+            // Check if user is admin
             if (!$currentUser->is_admin) {
                 return response()->json(['error' => 'User not authenticated.'], 403);
             }
 
-            // 处理 DataTables 的 Ajax 请求
+            // Handle DataTables Ajax request
             if ($request->ajax()) {
                 $tickets = Ticket::query();
                 return DataTables::of($tickets)
@@ -212,12 +212,12 @@ class TicketController extends Controller
         $ticket->redemption_date = now();
         $ticket->save();
 
-        // 如果是自动兑换（通过扫描二维码），显示移动端视图
+        // If auto redeem (through QR code scanning), display mobile view
         if ($request->query('auto_redeem')) {
             return view('tickets.mobile_redeemed', ['ticket' => $ticket]);
         }
 
-        // 如果是通过 AJAX 请求，返回 JSON
+        // If through AJAX request, return JSON
         return response()->json([
             'success' => true,
             'message' => 'Ticket redeemed successfully'

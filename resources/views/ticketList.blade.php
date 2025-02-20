@@ -234,7 +234,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.33/moment-timezone-with-data.min.js"></script>
 <script>
-    // 设置 moment.js 的默认时区为马来西亚
+    // Set moment.js default timezone to Malaysia
     moment.tz.setDefault("Asia/Kuala_Lumpur");
 </script>
 <script>
