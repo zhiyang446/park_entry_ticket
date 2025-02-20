@@ -201,6 +201,30 @@
             </div>
         </div>
     </div>
+
+    <!-- Delete Ticket Modal -->
+    <div class="modal fade" id="deleteTicketModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Delete Ticket
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body text-center py-4">
+                    <i class="fas fa-trash text-danger mb-3" style="font-size: 48px;"></i>
+                    <h5 class="mb-3">Are you sure you want to delete this ticket?</h5>
+                    <p class="text-muted mb-0">This action cannot be undone.</p>
+                </div>
+                <div class="modal-footer justify-content-center border-0">
+                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger px-4" id="confirmDelete">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 @endsection
 
@@ -390,15 +414,23 @@ $(document).ready(function() {
     });
 
     // Delete ticket
+    let ticketToDelete = null;
+    
     $('#ticketTable').on('click', '.delete-ticket', function() {
-        var id = $(this).data('id');
-        if (confirm('Are you sure you want to delete this ticket?')) {
+        ticketToDelete = $(this).data('id');
+        $('#deleteTicketModal').modal('show');
+    });
+
+    $('#confirmDelete').on('click', function() {
+        if (ticketToDelete) {
             $.ajax({
-                url: `/tickets/${id}`,
+                url: `/tickets/${ticketToDelete}`,
                 method: 'DELETE',
                 success: function() {
+                    $('#deleteTicketModal').modal('hide');
                     table.ajax.reload();
                     toastr.success('Ticket deleted successfully!');
+                    ticketToDelete = null;
                 },
                 error: function(xhr) {
                     console.error('Error:', xhr.responseText);
