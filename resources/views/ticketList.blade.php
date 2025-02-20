@@ -231,6 +231,12 @@
 @section('scripts')
 <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
 <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment-timezone/0.5.33/moment-timezone-with-data.min.js"></script>
+<script>
+    // 设置 moment.js 的默认时区为马来西亚
+    moment.tz.setDefault("Asia/Kuala_Lumpur");
+</script>
 <script>
 $(document).ready(function() {
     $.ajaxSetup({
@@ -310,12 +316,18 @@ $(document).ready(function() {
             {
                 data: 'creation_date',
                 name: 'creation_date',
-                className: 'text-center'
+                className: 'text-center',
+                render: function(data) {
+                    return data ? moment.utc(data).tz('Asia/Kuala_Lumpur').format('YYYY-MM-DD HH:mm:ss') : '';
+                }
             },
             {
                 data: 'redemption_date',
                 name: 'redemption_date',
-                className: 'text-center'
+                className: 'text-center',
+                render: function(data) {
+                    return data ? moment.utc(data).tz('Asia/Kuala_Lumpur').format('YYYY-MM-DD HH:mm:ss') : '';
+                }
             },
             {
                 data: 'qr_code',
