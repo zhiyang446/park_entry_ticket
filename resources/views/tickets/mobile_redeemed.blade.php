@@ -54,7 +54,7 @@
                             <p class="mb-2"><strong>Ticket ID:</strong> {{ $ticket->ticket_id }}</p>
                             <p class="mb-2"><strong>Type:</strong> {{ ucfirst($ticket->ticket_type) }}</p>
                             <p class="mb-2"><strong>Price:</strong> RM{{ number_format($ticket->ticket_price, 2) }}</p>
-                            <p class="mb-0"><strong>Redeemed at:</strong><br>{{ $ticket->redemption_date->format('Y-m-d H:i:s') }}</p>
+                            <p class="mb-0"><strong>Redeemed at:</strong><br>{{ $ticket->redemption_date->setTimezone('Asia/Kuala_Lumpur')->format('Y-m-d H:i:s') }}</p>
                         </div>
                     </div>
                 </div>
