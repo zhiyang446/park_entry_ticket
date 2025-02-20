@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TicketController;
+
 Route::get('/', function () {
     return view('welcome');
 });
@@ -18,7 +19,10 @@ Route::middleware('auth')->group(function () {
 
     //Ticket routes
     Route::resource('tickets', TicketController::class);
-    Route::get('tickets/{ticket}/redeem', [TicketController::class, 'redeem'])->name('tickets.redeem');
+    Route::get('tickets/{ticket}/redeem', [TicketController::class, 'redeem'])
+        ->name('tickets.redeem')
+        ->middleware('web'); // 确保 session 可用
+    Route::get('tickets/{ticket}/qr-code', [TicketController::class, 'showQrCode'])->name('tickets.qrcode');
 });
 
 require __DIR__.'/auth.php';

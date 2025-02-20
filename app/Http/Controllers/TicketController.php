@@ -7,19 +7,68 @@ use App\Models\Ticket;
 use Carbon\Carbon;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Illuminate\Support\Facades\Auth;
+use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Support\Facades\Storage;
+
 class TicketController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $currentUser = Auth::user();
-        if(!$currentUser->is_admin){
-            return redirect()->back()->withErrors(['error' => 'User not authenticated.']);
+        try {
+            $currentUser = Auth::user();
+
+            // 检查是否是管理员
+            if (!$currentUser->is_admin) {
+                return response()->json(['error' => 'User not authenticated.'], 403);
+            }
+
+            // 处理 DataTables 的 Ajax 请求
+            if ($request->ajax()) {
+                $tickets = Ticket::query();
+                return DataTables::of($tickets)
+                    ->addColumn('action', function ($ticket) {
+                        $buttons = '';
+                        if ($ticket->status === 'new') {
+                            $buttons .= '<button class="btn btn-sm btn-success redeem-ticket" data-id="'.$ticket->id.'">
+                                <i class="fas fa-check"></i> Use</button> ';
+                        }
+                        $buttons .= '<button class="btn btn-sm btn-danger delete-ticket" data-id="'.$ticket->id.'">
+                            <i class="fas fa-trash"></i></button>';
+                        return $buttons;
+                    })
+                    ->editColumn('status', function ($ticket) {
+                        $statusClasses = [
+                            'new' => 'bg-success',
+                            'redeemed' => 'bg-secondary',
+                            'expired' => 'bg-danger'
+                        ];
+                        return '<span class="badge '.$statusClasses[$ticket->status].'">'
+                            .ucfirst($ticket->status).'</span>';
+                    })
+                    ->editColumn('creation_date', function ($ticket) {
+                        return $ticket->creation_date ? Carbon::parse($ticket->creation_date)->format('Y-m-d H:i:s') : '';
+                    })
+                    ->editColumn('redemption_date', function ($ticket) {
+                        return $ticket->redemption_date ? 
+                            Carbon::parse($ticket->redemption_date)->format('Y-m-d H:i:s') : '';
+                    })
+                    ->rawColumns(['action', 'status'])
+                    ->toJson();
+            }
+
+            return view('ticketList');
+        } catch (\Exception $e) {
+            if ($request->ajax()) {
+                return response()->json([
+                    'error' => true,
+                    'message' => $e->getMessage()
+                ], 500);
+            }
+            throw $e;
         }
-        $tickets = Ticket::all();
-        return response()->json(['tickets' => $tickets]);
     }
 
     /**
@@ -27,33 +76,70 @@ class TicketController extends Controller
      */
     public function store(Request $request)
     {
-        validator($request->all(),[
-            'ticket_id' => 'required|string|max:255',
-            'creation_date' => 'required|date',
-            'redemption_date' => 'nullable|date',
-            'status' => 'required|in:new,redeemed,expired',
+        $request->validate([
+            'ticket_type' => 'required|string',
+            'ticket_quantity' => 'required|integer|min:1'
         ]);
 
+        $prices = [
+            'adult' => '100',
+            'child' => '50',
+            'senior' => '75'
+        ];
+
+        $tickets = [];
         $today = Carbon::now()->format('Ymd');
-        $count = Ticket::whereDate('creation_date', $today)->count() + 1;
-        $ticket_id = 'TIC' . $today . '_' . str_pad($count, 3, '0', STR_PAD_LEFT);
+        $baseCount = Ticket::whereDate('creation_date', today())->count();
 
-        $ticket = Ticket::create([
-            'ticket_id' => $ticket_id,
-            'creation_date' => $today,
-            'redemption_date' => $request->redemption_date ?? null,
-            'status' => 'new',
-        ]);
+        for ($i = 0; $i < $request->ticket_quantity; $i++) {
+            $count = $baseCount + $i + 1;
+            $ticket_id = 'TIC' . $today . '_' . str_pad($count, 3, '0', STR_PAD_LEFT);
 
-        //generate qr code
-        $qrCode = QrCode::size(200)->generate(route('tickets.redeem', $ticket->id));
+            $ticket = Ticket::create([
+                'ticket_id' => $ticket_id,
+                'ticket_type' => $request->ticket_type,
+                'ticket_price' => $prices[$request->ticket_type] ?? '100',
+                'ticket_quantity' => 1,
+                'creation_date' => now(),
+                'status' => 'new'
+            ]);
+
+            // Generate QR code with direct redemption URL
+            $redeemUrl = route('tickets.redeem', ['ticket' => $ticket->id, 'auto_redeem' => true]);
+            $qrCode = QrCode::size(200)
+                           ->margin(1)
+                           ->generate($redeemUrl);
+
+            // Save QR code to storage
+            $qrPath = 'qrcodes/' . $ticket_id . '.svg';
+            Storage::disk('public')->put($qrPath, $qrCode);
+
+            // Update ticket with QR code path
+            $ticket->qr_code = $qrPath;
+            $ticket->save();
+
+            $tickets[] = $ticket;
+        }
 
         return response()->json([
             'success' => true,
-            'message' => 'Ticket created successfully',
-            'ticket' => $ticket,
-            'qr_code' => $qrCode
+            'message' => 'Tickets created successfully',
+            'tickets' => $tickets
         ]);
+    }
+
+    /**
+     * Display QR code for a ticket
+     */
+    public function showQrCode($id)
+    {
+        $ticket = Ticket::findOrFail($id);
+        
+        if (!$ticket->qr_code || !Storage::disk('public')->exists($ticket->qr_code)) {
+            abort(404, 'QR code not found');
+        }
+
+        return response()->file(Storage::disk('public')->path($ticket->qr_code));
     }
 
     /**
@@ -70,21 +156,24 @@ class TicketController extends Controller
      */
     public function update(Request $request, Ticket $ticket)
     {
-        validator($request->all(),[
+        $request->validate([
             'status' => 'required|in:new,redeemed,expired',
             'redemption_date' => 'nullable|date',
         ]);
 
         $ticket->status = $request->status;
         if ($ticket->status === 'redeemed') {
-            $ticket->redemption_date = now()->toDateString();
+            $ticket->redemption_date = now();
         } else {
-            $ticket->redemption_date = $request->redemption_date ?? null;
+            $ticket->redemption_date = $request->redemption_date;
         }
 
         $ticket->save();
 
-        return redirect()->route('tickets.edit', $ticket->id)->with('success', 'Ticket updated successfully');
+        return response()->json([
+            'success' => true,
+            'message' => 'Ticket updated successfully'
+        ]);
     }
 
     /**
@@ -96,18 +185,42 @@ class TicketController extends Controller
         $ticket->delete();
         return response()->json([
             'success' => true,
-            'message' => 'Ticket deleted successfully']);
+            'message' => 'Ticket deleted successfully'
+        ]);
     }
 
-    public function redeem(Ticket $ticket)
+    /**
+     * Redeem a ticket
+     */
+    public function redeem(Request $request, Ticket $ticket)
     {
-        if($ticket->status === 'redeemed'){
-            return redirect()->back()->withErrors(['error' => 'Ticket already redeemed.']);
+        if($ticket->status !== 'new'){
+            $message = 'Ticket has already been redeemed.';
+            if ($request->query('auto_redeem')) {
+                return view('tickets.mobile_redeemed', [
+                    'message' => $message,
+                    'ticket' => $ticket
+                ]);
+            }
+            return response()->json([
+                'success' => false,
+                'message' => $message
+            ], 400);
         }
+
         $ticket->status = 'redeemed';
-        $ticket->redemption_date = now()->toDateString();
+        $ticket->redemption_date = now();
         $ticket->save();
 
-        return redirect()->route('tickets.edit', $ticket->id)->with('success', 'Ticket redeemed successfully');
+        // 如果是自动兑换（通过扫描二维码），显示移动端视图
+        if ($request->query('auto_redeem')) {
+            return view('tickets.mobile_redeemed', ['ticket' => $ticket]);
+        }
+
+        // 如果是通过 AJAX 请求，返回 JSON
+        return response()->json([
+            'success' => true,
+            'message' => 'Ticket redeemed successfully'
+        ]);
     }
 }
