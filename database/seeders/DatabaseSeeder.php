@@ -23,6 +23,9 @@ class DatabaseSeeder extends Seeder
 
         Ticket::factory()->create([
             'ticket_id' => 'TICKET20250218_001',
+            'ticket_type' => 'adult',
+            'ticket_price' => '100',
+            'ticket_quantity' => '1',
             'creation_date' => '2025-02-18',
             'redemption_date' => '2025-02-18',
             'status' => 'new',
