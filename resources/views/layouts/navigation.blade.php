@@ -6,7 +6,7 @@
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
                     <a href="{{ route('tickets.index') }}" class="text-sky-500 font-bold text-xl hover:text-sky-200 transition-colors duration-300">
-                        <x-application-logo class="block h-9 w-auto fill-current" />
+                        <img src="{{ asset('images/tickets.png') }}" alt="Logo" class="h-9 w-auto">
                     </a>
                 </div>
 
@@ -23,8 +23,8 @@
             <div class="hidden sm:flex sm:items-center sm:ml-6">
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
-                        <button class="btn-hover inline-flex items-center px-3 py-2 text-sm leading-4 font-medium rounded-md text-sky-500 hover:text-sky-200 bg-blue-900/80 focus:outline-none transition ease-in-out duration-150">
-                            <div>{{ Auth::user()->name }}</div>
+                        <button class="btn-hover inline-flex items-center px-3 py-2 text-sm leading-4 font-medium rounded-md text-white hover:text-sky-200 bg-blue-900/80 focus:outline-none transition ease-in-out duration-150">
+                            <div style="font-size: 20px;">{{ Auth::user()->name }}</div>
 
                             <div class="ml-1">
                                 <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">

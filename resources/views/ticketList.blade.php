@@ -20,6 +20,19 @@
         font-size: 1rem;
         padding: 0.5em 1em;
     }
+
+    /* Table styling */
+    #ticketTable thead th,
+    #ticketTable tbody td {
+        text-align: center !important;
+        vertical-align: middle !important;
+    }
+
+    #ticketTable .actions-column {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+    }
     
     @media screen and (max-width: 767px) {
         .container {
@@ -84,7 +97,7 @@
 
 @section('content')
 <div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
-    <div class="row mb-3">
+    <div class="row">
         <div class="col-md-12">
             <h2 style="font-size: 35px;">Ticket Management</h2>
             <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addTicketModal">
@@ -235,12 +248,14 @@ $(document).ready(function() {
             {
                 data: 'ticket_id',
                 name: 'ticket_id',
-                responsivePriority: 1
+                responsivePriority: 1,
+                className: 'text-center'
             },
             {
                 data: 'ticket_type',
                 name: 'ticket_type',
                 responsivePriority: 2,
+                className: 'text-center',
                 render: function(data) {
                     return data ? data.charAt(0).toUpperCase() + data.slice(1) : '';
                 }
@@ -249,6 +264,7 @@ $(document).ready(function() {
                 data: 'ticket_price',
                 name: 'ticket_price',
                 responsivePriority: 3,
+                className: 'text-center',
                 render: function(data) {
                     return 'RM ' + data;
                 }
@@ -256,6 +272,7 @@ $(document).ready(function() {
             {
                 data: 'status',
                 name: 'status',
+                className: 'text-center',
                 render: function(data) {
                     const statusClasses = {
                         'new': 'bg-success',
@@ -268,15 +285,18 @@ $(document).ready(function() {
             },
             {
                 data: 'creation_date',
-                name: 'creation_date'
+                name: 'creation_date',
+                className: 'text-center'
             },
             {
                 data: 'redemption_date',
-                name: 'redemption_date'
+                name: 'redemption_date',
+                className: 'text-center'
             },
             {
                 data: 'qr_code',
                 name: 'qr_code',
+                className: 'text-center',
                 render: function(data, type, row) {
                     if (data) {
                         return '<button class="btn btn-sm btn-info view-qr mb-2" data-ticket=\'' + JSON.stringify(row) + '\'>' +
@@ -290,15 +310,15 @@ $(document).ready(function() {
                 name: 'action',
                 orderable: false,
                 searchable: false,
+                className: 'text-center',
                 render: function(data, type, row) {
-                    return '<div style="display: flex; gap: 8px; justify-content: flex-end;">' +
+                    return '<div class="d-flex justify-content-center gap-2">' +
                            '<button class="btn btn-sm btn-success redeem-ticket" data-id="' + row.id + '">' +
                            '<i class="fas fa-check"></i> Use</button>' +
                            '<button class="btn btn-sm btn-danger delete-ticket" data-id="' + row.id + '">' +
                            '<i class="fas fa-trash"></i></button>' +
                            '</div>';
                 }
-
             }
         ],
         order: [[3, 'desc']], // Sort by creation date by default
