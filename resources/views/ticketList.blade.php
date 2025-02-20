@@ -271,9 +271,6 @@ $(document).ready(function() {
                 data: 'qr_code',
                 name: 'qr_code',
                 render: function(data, type, row) {
-                    if (row.status === 'redeemed') {
-                        return '-';
-                    }
                     if (data) {
                         return '<button class="btn btn-sm btn-info view-qr mb-2" data-ticket=\'' + JSON.stringify(row) + '\'>' +
                             '<i class="fas fa-qrcode"></i> View QR</button>';
@@ -287,12 +284,6 @@ $(document).ready(function() {
                 orderable: false,
                 searchable: false,
                 render: function(data, type, row) {
-                    if (row.status === 'redeemed') {
-                        return '<div style="display: flex; gap: 8px; justify-content: flex-end;">' +
-                               '<button class="btn btn-sm btn-danger delete-ticket" data-id="' + row.id + '">' +
-                               '<i class="fas fa-trash"></i></button>' +
-                               '</div>';
-                    }
                     return '<div style="display: flex; gap: 8px; justify-content: flex-end;">' +
                            '<button class="btn btn-sm btn-success redeem-ticket" data-id="' + row.id + '">' +
                            '<i class="fas fa-check"></i> Use</button>' +
