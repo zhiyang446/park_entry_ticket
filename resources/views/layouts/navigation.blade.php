@@ -6,7 +6,7 @@
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
                     <a href="{{ route('tickets.index') }}" class="text-sky-500 font-bold text-xl hover:text-sky-200 transition-colors duration-300">
-                        <img src="{{ asset('images/tickets.png') }}" alt="Logo" class="h-9 w-auto">
+                        <img src="{{ asset('images/ticket_logo.png') }}" alt="Logo" class="h-9 w-auto">
                     </a>
                 </div>
 
