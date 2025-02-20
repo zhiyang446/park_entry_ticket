@@ -17,7 +17,7 @@ Route::middleware('auth')->group(function () {
     Route::resource('tickets', TicketController::class);
     Route::get('tickets/{ticket}/redeem', [TicketController::class, 'redeem'])
         ->name('tickets.redeem')
-        ->middleware('web'); // 确保 session 可用
+        ->middleware('web'); // Ensure session is available
     Route::get('tickets/{ticket}/qr-code', [TicketController::class, 'showQrCode'])->name('tickets.qrcode');
 });
 
