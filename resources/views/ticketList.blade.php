@@ -8,6 +8,13 @@
         width: 100%;
     }
     
+    /* Title styling */
+    h2 {
+        font-size: 90px !important;
+        line-height: 1.2 !important;
+        margin: 20px 0 !important;
+    }
+    
     /* Status badge styling */
     table .badge {
         font-size: 1rem;
@@ -16,10 +23,10 @@
     
     @media screen and (max-width: 767px) {
         .container {
-            padding: 0;
+            padding: 0 15px;
         }
         .card-body {
-            padding: 10px;
+            padding: 15px;
         }
         
         /* Mobile specific styles */
@@ -76,10 +83,10 @@
 @endsection
 
 @section('content')
-<div class="container">
+<div class="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
     <div class="row mb-3">
         <div class="col-md-12">
-            <h2>Ticket Management</h2>
+            <h2 style="font-size: 35px;">Ticket Management</h2>
             <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addTicketModal">
                 <i class="fas fa-plus"></i> Add Ticket
             </button>
@@ -275,7 +282,7 @@ $(document).ready(function() {
                         return '<button class="btn btn-sm btn-info view-qr mb-2" data-ticket=\'' + JSON.stringify(row) + '\'>' +
                             '<i class="fas fa-qrcode"></i> View QR</button>';
                     }
-                    return 'No QR Code';
+                    return '-';
                 }
             },
             {
@@ -291,6 +298,7 @@ $(document).ready(function() {
                            '<i class="fas fa-trash"></i></button>' +
                            '</div>';
                 }
+
             }
         ],
         order: [[3, 'desc']], // Sort by creation date by default
